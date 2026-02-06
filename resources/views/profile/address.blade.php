@@ -27,15 +27,27 @@
                 @else
                     @foreach($addresses as $address)
                     <div class="border p-3 mb-3 rounded-3 position-relative">
-                        <h6 class="fw-bold">{{ $address->recipient_name }} <span class="badge bg-light text-dark border ms-2">{{ $address->phone }}</span></h6>
-                        <p class="small text-muted mb-0">{{ $address->full_address }}</p>
+                        <h6 class="fw-bold">
+                            {{-- ดึงชื่อจาก Model User ผ่านความสัมพันธ์ --}}
+                            {{ $address->user->name }} 
+                            <span class="badge bg-light text-dark border ms-2">
+                                {{ $address->user->phone }}
+                            </span>
+                        </h6>
+                        <p class="small text-muted mb-0">
+                            {{-- รวมฟิลด์จาก UserAddress Model --}}
+                            {{ $address->address_detail }} 
+                            ต.{{ $address->subdistrict }} 
+                            อ.{{ $address->district }} 
+                            จ.{{ $address->province }} 
+                            {{ $address->zipcode }}
+                        </p>
                         <div class="mt-2">
                             <button class="btn btn-sm btn-outline-danger">Delete</button>
                             @if(!$address->is_default)
                                 <button class="btn btn-sm btn-link text-decoration-none">Set as Default</button>
                             @else
                                 <span class="badge bg-success small">Default</span>
-                            @endif
                         </div>
                     </div>
                     @endforeach

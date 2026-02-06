@@ -89,7 +89,7 @@
 </div>
 
 <div class="modal fade" id="addAddressModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <form action="{{ route('address.store') }}" method="POST" class="modal-content border-0 shadow-lg rounded-4">
             @csrf
             <div class="modal-header border-0">
@@ -97,19 +97,34 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted">ชื่อ-นามสกุลผู้รับ</label>
-                    <input type="text" name="recipient_name" class="form-control bg-light border-0 py-2" placeholder="ระบุชื่อผู้รับสินค้า" required>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label class="form-label small fw-bold text-muted">ที่อยู่ (บ้านเลขที่/ซอย/ถนน)</label>
+                        <input type="text" name="address_detail" class="form-control bg-light border-0 py-2" placeholder="เช่น 123/45 หมู่ 5" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold text-muted">ตำบล/แขวง</label>
+                        <input type="text" name="subdistrict" class="form-control bg-light border-0 py-2" placeholder="ตำบล/แขวง" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold text-muted">อำเภอ/เขต</label>
+                        <input type="text" name="district" class="form-control bg-light border-0 py-2" placeholder="อำเภอ/เขต" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold text-muted">จังหวัด</label>
+                        <input type="text" name="province" class="form-control bg-light border-0 py-2" placeholder="จังหวัด" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold text-muted">รหัสไปรษณีย์</label>
+                        <input type="text" name="zipcode" class="form-control bg-light border-0 py-2" placeholder="รหัสไปรษณีย์" required>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted">เบอร์โทรศัพท์</label>
-                    <input type="text" name="phone" class="form-control bg-light border-0 py-2" placeholder="ระบุเบอร์โทรศัพท์" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted">ที่อยู่โดยละเอียด</label>
-                    <textarea name="address_detail" class="form-control bg-light border-0" rows="3" placeholder="บ้านเลขที่, ถนน, แขวง, เขต, จังหวัด" required></textarea>
-                </div>
-                <div class="form-check">
+
+                <div class="form-check mt-2">
                     <input class="form-check-input" type="checkbox" name="is_default" value="1" id="isDefaultCheck" checked>
                     <label class="form-check-label small" for="isDefaultCheck">
                         ตั้งเป็นที่อยู่หลัก
