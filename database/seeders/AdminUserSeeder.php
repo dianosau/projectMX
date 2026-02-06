@@ -1,0 +1,23 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
+class AdminUserSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // สร้าง user แอดมินตามที่คุณระบุ
+        User::updateOrCreate(
+            ['email' => 'admin@gmail.com'], // ถ้ามีเมลนี้แล้วจะแค่อัปเดต ถ้าไม่มีจะสร้างใหม่
+            [
+                'name' => 'Administrator',
+                'password' => Hash::make('321654'),
+                'role' => 'admin', // สำคัญมาก ต้องเป็นคำนี้
+            ]
+        );
+    }
+}
