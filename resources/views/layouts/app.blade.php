@@ -8,7 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
     <style>
         :root {
             --primary-color: #3f51b5;
@@ -135,14 +134,28 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('home.view') }}"><i class="fas fa-home me-1"></i>หน้าแรก</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('all.product') }}"><i class="fas fa-guitar me-1"></i>สินค้าทั้งหมด</a>
+                        <a class="nav-link" href="{{ route('all.product') }}"><i
+                                class="fas fa-guitar me-1"></i>สินค้าทั้งหมด</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown">
+                            หมวดหมู่
+                        </a>
+                        <ul class="dropdown-menu">
+                            @foreach(App\Models\ProductCategory::all() as $category)
+                                <li><a class="dropdown-item"
+                                        href="{{ route('category.products', $category->id) }}">{{ $category->name }}</a>
+                                </li>
+                            @endforeach
+                        </ul>
                     </li>
                 </ul>
 
@@ -160,7 +173,8 @@
                                     $totalQuantity = \App\Models\CartItem::where('user_id', Auth::id())->sum('quantity');
                                 @endphp
                                 @if($totalQuantity > 0)
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge">
+                                    <span
+                                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge">
                                         {{ $totalQuantity }}
                                     </span>
                                 @endif
@@ -170,10 +184,12 @@
 
                     @guest
                         <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">เข้าสู่ระบบ</a></li>
-                        <li class="nav-item"><a class="nav-link btn btn-warning text-dark ms-lg-2 px-3 rounded-pill" href="{{ route('register') }}">สมัครสมาชิก</a></li>
+                        <li class="nav-item"><a class="nav-link btn btn-warning text-dark ms-lg-2 px-3 rounded-pill"
+                                href="{{ route('register') }}">สมัครสมาชิก</a></li>
                     @else
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                data-bs-toggle="dropdown">
                                 <i class="fas fa-user-circle me-1"></i>{{ Auth::user()->name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
@@ -189,7 +205,9 @@
                                         <i class="fas fa-history me-2 text-success"></i>ประวัติการสั่งซื้อ
                                     </a>
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
@@ -223,11 +241,13 @@
             <div class="row">
                 <div class="col-md-4 mb-4">
                     <h5><i class="fas fa-info-circle me-2"></i>เกี่ยวกับเรา</h5>
-                    <p class="text-white-50">ร้านเครื่องดนตรีออนไลน์ จำหน่ายเครื่องดนตรีคุณภาพ มั่นใจได้ในคุณภาพและบริการ พร้อมส่งทั่วประเทศ</p>
+                    <p class="text-white-50">ร้านเครื่องดนตรีออนไลน์ จำหน่ายเครื่องดนตรีคุณภาพ
+                        มั่นใจได้ในคุณภาพและบริการ พร้อมส่งทั่วประเทศ</p>
                 </div>
                 <div class="col-md-4 mb-4">
                     <h5><i class="fas fa-phone me-2"></i>ติดต่อเรา</h5>
-                    <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> 123 ถนนพระยาสัจจา ชลบุรี 20000</p>
+                    <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> 123 ถนนพระยาสัจจา ชลบุรี
+                        20000</p>
                     <p class="mb-2"><i class="fas fa-phone me-2 text-secondary"></i> 061-615-3677</p>
                     <p class="mb-2"><i class="fas fa-envelope me-2 text-secondary"></i> wave@musicstore.com</p>
                 </div>
@@ -249,6 +269,7 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    @yield('scripts')
+    @stack('scripts')
 </body>
+
 </html>

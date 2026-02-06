@@ -12,14 +12,14 @@ class OrderController extends Controller
     // --- สำหรับ USER ---
     public function index()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
 
         $orders = Order::where('user_id', Auth::id())
-                        ->with(['items.product']) 
-                        ->latest()
-                        ->get();
+            ->with(['orderItems.product'])
+            ->latest()
+            ->get();
 
         return view('orders.index', compact('orders'));
     }
@@ -34,13 +34,15 @@ class OrderController extends Controller
         }
 
         $order->update(['status' => 'completed']);
+
         return back()->with('success', 'ยืนยันการรับสินค้าเรียบร้อยแล้ว');
     }
 
     // --- สำหรับ ADMIN ---
     public function adminIndex()
     {
-        $orders = Order::with(['user', 'items.product'])->latest()->get();
+        $orders = Order::with(['user', 'orderItems.product'])->latest()->get();
+
         return view('admin.orders.index', compact('orders'));
     }
 
@@ -50,12 +52,12 @@ class OrderController extends Controller
 
         $request->validate([
             'status' => 'required|in:pending,processing,shipping,completed',
-            'tracking_number' => 'nullable|string'
+            'tracking_number' => 'nullable|string',
         ]);
 
         $order->update([
             'status' => $request->status,
-            'tracking_number' => $request->tracking_number
+            'tracking_number' => $request->tracking_number,
         ]);
 
         return back()->with('success', 'อัปเดตสถานะคำสั่งซื้อเรียบร้อย');

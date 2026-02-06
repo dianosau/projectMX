@@ -15,7 +15,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'address',
         'phone',
         'role',
     ];
@@ -34,8 +33,13 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     // ความสัมพันธ์กับตะกร้าสินค้า
-  public function cartItems()
+    public function cartItems()
     {
         return $this->hasMany(CartItem::class);
     }
-} // ปีกกาปิดตัวสุดท้ายของไฟล์
+
+    public function UserAddresses()
+    {
+        return $this->hasMany(UserAddress::class);
+    }
+}

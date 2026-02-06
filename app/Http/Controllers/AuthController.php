@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\UserAddress;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -17,36 +19,77 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
-            'address' => 'nullable',
-            'phone' => 'nullable|numeric',
+            'phone' => 'required|numeric|digits_between:9,10',
+            'address_detail' => 'required|string',
+            'subdistrict' => 'required|string',
+            'district' => 'required|string',
+            'province' => 'required|string',
+            'zipcode' => 'required|string',
+        ], [
+            'name.required' => 'กรุณากรอกชื่อ-นามสกุล',
+            'email.required' => 'กรุณากรอกอีเมล',
+            'email.unique' => 'อีเมลนี้ถูกใช้งานไปแล้ว',
+            'password.required' => 'กรุณากำหนดรหัสผ่าน',
+            'password.confirmed' => 'รหัสผ่านยืนยันไม่ตรงกัน',
+            'password.min' => 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+            'phone.required' => 'กรุณากรอกเบอร์โทรศัพท์',
+            'phone.numeric' => 'เบอร์โทรศัพท์ต้องเป็นตัวเลขเท่านั้น',
+            'phone.digits_between' => 'เบอร์โทรศัพท์ต้องมีความยาว 9 ถึง 10 หลัก',
+            'address_detail.required' => 'กรุณากรอกบ้านเลขที่/ถนน',
+            'subdistrict.required' => 'กรุณากรอกตำบล',
+            'district.required' => 'กรุณากรอกอำเภอ',
+            'province.required' => 'กรุณากรอกจังหวัด',
+            'zipcode.required' => 'กรุณากรอกรหัสไปรษณีย์',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'address' => $request->address,
-            'phone' => $request->phone,
-            'role' => 'user' // ค่าเริ่มต้นเป็น user
-        ]);
+        try {
+            // ใช้ Transaction เพื่อความปลอดภัย
+            $user = DB::transaction(function () use ($request) {
 
-        $user->sendEmailVerificationNotification();
+                // 1. บันทึกข้อมูล User
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'phone' => $request->phone,
+                    'role' => 'user',
+                ]);
 
-        return redirect('/email/verify')->with('success', 'สมัครสำเร็จ! กรุณายืนยันอีเมลของคุณ');
+                // 2. บันทึกข้อมูลลงตาราง user_addresses
+                UserAddress::create([
+                    'user_id' => $user->id,
+                    'address_detail' => $request->address_detail,
+                    'subdistrict' => $request->subdistrict,
+                    'district' => $request->district,
+                    'province' => $request->province,
+                    'zipcode' => $request->zipcode,
+                    'is_default' => 1,
+                ]);
+
+                return $user;
+            });
+
+            $user->sendEmailVerificationNotification();
+
+            return redirect('/email/verify')->with('success', 'สมัครสมาชิกสำเร็จ! กรุณายืนยันอีเมล');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: '.$e->getMessage())->withInput();
+        }
     }
 
     public function verifyEmail($id, $hash)
     {
         $user = User::findOrFail($id);
 
-        if (!hash_equals(sha1($user->email), $hash)) {
+        if (! hash_equals(sha1($user->email), $hash)) {
             abort(403, 'ลิงก์ยืนยันไม่ถูกต้อง');
         }
 
-        if (!$user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
 
@@ -60,34 +103,26 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
+        ], [
+            'email.required' => 'กรุณากรอกอีเมล',
+            'password.required' => 'กรุณากรอกรหัสผ่าน',
         ]);
 
-        // พยายามเข้าสู่ระบบ
-        if (Auth::attempt($request->only('email', 'password'))) {
-            
-            /** @var \App\Models\User $user */
+        if (Auth::attempt($credentials)) {
             $user = Auth::user();
-
-            // 1. เช็คสิทธิ์และสถานะการยืนยันอีเมล
-            if ($user->role !== 'admin' && !$user->hasVerifiedEmail()) {
+            if ($user->role !== 'admin' && ! $user->hasVerifiedEmail()) {
                 Auth::logout();
+
                 return redirect()->back()->with('error', 'กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ');
             }
-
             $request->session()->regenerate();
 
-            // 2. แยกทางไปตาม Role
-            if ($user->role === 'admin') {
-                return redirect()->route('admin.dashboard')->with('success', 'ยินดีต้อนรับผู้ดูแลระบบ');
-            }
-
-            return redirect('/')->with('success', 'เข้าสู่ระบบสำเร็จ');
+            return redirect()->intended('/')->with('success', 'เข้าสู่ระบบสำเร็จ');
         }
 
-        // กรณีใส่ข้อมูลผิด
         return redirect()->back()->with('error', 'อีเมลหรือรหัสผ่านไม่ถูกต้อง')->withInput();
     }
 

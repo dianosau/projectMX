@@ -24,6 +24,6 @@ class Product extends Model
     // ความสัมพันธ์กับ Category
     public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(ProductCategory::class);
     }
 }

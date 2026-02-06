@@ -37,14 +37,19 @@
                             <label class="form-label fw-bold">
                                 <i class="fas fa-envelope text-primary me-2"></i>อีเมล
                             </label>
-                            <input type="email" name="email" class="form-control form-control-lg rounded-3" required value="{{ old('email') }}" placeholder="example@email.com">
+                            <input type="email" name="email"
+                                class="form-control form-control-lg rounded-3 @error('email') is-invalid @enderror"
+                                value="{{ old('email') }}" placeholder="example@email.com">
+                            @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">
                                 <i class="fas fa-lock text-primary me-2"></i>รหัสผ่าน
                             </label>
-                            <input type="password" name="password" class="form-control form-control-lg rounded-3" required placeholder="••••••••">
+                            <input type="password" name="password"
+                                class="form-control form-control-lg rounded-3 @error('password') is-invalid @enderror">
+                            @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 btn-lg rounded-pill mt-3 fw-bold">
@@ -52,7 +57,9 @@
                         </button>
 
                         <div class="text-center mt-3">
-                            <small>ยังไม่มีบัญชี? <a href="{{ route('register') }}" class="text-decoration-none fw-bold">สมัครสมาชิกเลย <i class="fas fa-arrow-right ms-1"></i></a></small>
+                            <small>ยังไม่มีบัญชี? <a href="{{ route('register') }}"
+                                    class="text-decoration-none fw-bold">สมัครสมาชิกเลย <i
+                                        class="fas fa-arrow-right ms-1"></i></a></small>
                         </div>
                     </form>
                 </div>
@@ -62,7 +69,8 @@
 
     <style>
         .form-control:focus {
-            border-color: #0d6efd; /* แก้เป็นค่าสีพื้นฐานหรือตัวแปรที่คุณใช้ */
+            border-color: #0d6efd;
+            /* แก้เป็นค่าสีพื้นฐานหรือตัวแปรที่คุณใช้ */
             box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
         }
     </style>
