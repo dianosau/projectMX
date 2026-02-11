@@ -3,19 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // แก้ไขจุดนี้แล้ว
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
-    // --- สำหรับ USER ---
+    /**
+     * ==========================================
+     * สำหรับ USER (ลูกค้า)
+     * ==========================================
+     */
+
+    // หน้าแสดงรายการสั่งซื้อของลูกค้าเอง
     public function index()
     {
-        if (! Auth::check()) {
-            return redirect()->route('login');
-        }
-
         $orders = Order::where('user_id', Auth::id())
             ->with(['orderItems.product'])
             ->latest()
@@ -24,42 +25,47 @@ class OrderController extends Controller
         return view('orders.index', compact('orders'));
     }
 
-    // สำหรับ User กดยืนยันว่าได้รับสินค้าแล้ว
+    // ลูกค้ากดยืนยันได้รับสินค้า
     public function complete($id)
     {
-        $order = Order::findOrFail($id);
-
-        if ($order->user_id !== Auth::id()) {
-            return back()->with('error', 'ไม่มีสิทธิ์เข้าถึงรายการนี้');
-        }
-
+        $order = Order::where('user_id', Auth::id())->findOrFail($id);
         $order->update(['status' => 'completed']);
 
-        return back()->with('success', 'ยืนยันการรับสินค้าเรียบร้อยแล้ว');
+        return back()->with('success', 'ยืนยันการรับสินค้าเรียบร้อยแล้ว ขอบคุณที่ใช้บริการครับ');
     }
 
-    // --- สำหรับ ADMIN ---
+
+    /**
+     * ==========================================
+     * สำหรับ ADMIN (ผู้ดูแลระบบ)
+     * ==========================================
+     */
+
+    // หน้าจัดการคำสั่งซื้อทั้งหมด (Admin Dashboard)
     public function adminIndex()
     {
         $orders = Order::with(['user', 'orderItems.product'])->latest()->get();
-
         return view('admin.orders.index', compact('orders'));
     }
 
+    // อัปเดตสถานะการจัดส่งและเลขพัสดุ
     public function updateStatus(Request $request, $id)
     {
         $order = Order::findOrFail($id);
 
         $request->validate([
             'status' => 'required|in:pending,processing,shipping,completed',
-            'tracking_number' => 'nullable|string',
+            'tracking_number' => 'nullable|string|max:50',
         ]);
 
+        // อัปเดตข้อมูลลงตาราง orders
         $order->update([
             'status' => $request->status,
             'tracking_number' => $request->tracking_number,
+            // หากมีการอัปเดตสถานะเป็น completed อาจจะอัปเดต payment_status เป็น paid อัตโนมัติ (ถ้าต้องการ)
+            'payment_status' => ($request->status == 'completed') ? 'paid' : $order->payment_status,
         ]);
 
-        return back()->with('success', 'อัปเดตสถานะคำสั่งซื้อเรียบร้อย');
+        return back()->with('success', "อัปเดตคำสั่งซื้อ #{$order->id} เรียบร้อยแล้ว");
     }
 }

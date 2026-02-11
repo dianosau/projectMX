@@ -12,8 +12,7 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'total_amount',
-        'payment_status',  // สำหรับเช็คว่าจ่ายเงินหรือยัง (เช่น pending, paid)
-        'status',          // เพิ่ม: สำหรับสถานะโปรเจค (pending, processing, shipping, completed)
+        'shipping_status',          // เพิ่ม: สำหรับสถานะโปรเจค (pending, processing, shipping, completed)
         'shipping_address',
         'payment_method',
         'tracking_number',  // เพิ่ม: สำหรับใส่เลขพัสดุ

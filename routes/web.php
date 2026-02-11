@@ -1,107 +1,96 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
-
-// Import Controllers ฝั่ง User
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OrderController;
-
-// Import Controllers ฝั่ง Admin (ใช้ as เพื่อไม่ให้ซ้ำกับข้างบน)
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 
-// =========================================================
-// 1. หน้าทั่วไป (ไม่ต้อง Login)
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| 1. Public Routes (เข้าถึงได้ทุกคน ไม่ต้อง Login)
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', function () {
     return view('home');
 })->name('home.view');
 
+// แสดงสินค้า
 Route::get('/products', [ProductController::class, 'showAllProduct'])->name('all.product');
 Route::get('/category/{id}/products', [ProductController::class, 'showByCategory'])->name('category.products');
 Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
 
-// =========================================================
-// 2. ระบบยืนยันตัวตน (Login/Register)
-// =========================================================
+// ระบบ Authentication
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// ระบบยืนยัน Email
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
-    ->middleware(['signed'])
-    ->name('verification.verify');
-
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-    return back()->with('success', 'ส่งลิงก์ยืนยันอีกครั้งเรียบร้อย!');
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
-
-// =========================================================
-// 3. สำหรับ USER (ต้อง Login ก่อน)
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| 2. User Routes (ต้อง Login เท่านั้น)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth'])->group(function () {
-    
-    // โปรไฟล์และการจัดการที่อยู่
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
-    Route::post('/profile/address', [ProfileController::class, 'storeAddress'])->name('address.store');
-    Route::post('/profile/address/set-default/{id}', [ProfileController::class, 'setDefault'])->name('address.set-default');
 
-    // ตะกร้าสินค้า
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart/add/{productId}', [CartController::class, 'add'])->name('cart.add');
-    Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
-    
-    // การชำระเงิน (Checkout)
+    // โปรไฟล์
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+
+    // ตะกร้าสินค้าและการสั่งซื้อ
+    Route::prefix('cart')->name('cart.')->group(function () {
+        Route::get('/', [CartController::class, 'index'])->name('index');
+        Route::post('/add/{productId}', [CartController::class, 'add'])->name('add');
+        Route::post('/remove/{id}', [CartController::class, 'remove'])->name('remove');
+    });
+
     Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout.index');
     Route::post('/checkout/process', [CartController::class, 'processCheckout'])->name('checkout.process');
-    
-    // สถานะคำสั่งซื้อและการแจ้งโอน
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::post('/orders/{order}/complete', [OrderController::class, 'complete'])->name('orders.complete');
-    Route::post('/orders/{order}/upload-slip', [OrderController::class, 'uploadSlip'])->name('orders.uploadSlip');
+
+    // จัดการคำสั่งซื้อฝั่ง User
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::post('/{id}/complete', [OrderController::class, 'complete'])->name('complete'); // กดยืนยันรับสินค้า
+    });
 });
 
-// =========================================================
-// 4. สำหรับ ADMIN (ต้องผ่าน Middleware 'admin')
-// =========================================================
+
+/*
+|--------------------------------------------------------------------------
+| 3. Admin Routes (ต้อง Login และเป็น Admin เท่านั้น)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    
-    // หน้าหลัก Admin
+
+    // หน้า Dashboard หลัก
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
 
-    // การจัดการคำสั่งซื้อ (ดูรายการ/เปลี่ยนสถานะ)
-    Route::get('/orders', [OrderController::class, 'adminIndex'])->name('orders.index');
-    Route::put('/orders/{order}/update', [OrderController::class, 'updateStatus'])->name('orders.update');
+    // การจัดการคำสั่งซื้อ (จบในกลุ่มเดียว)
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'adminIndex'])->name('index'); // หน้าจัดการ Order
+        Route::put('/{order}/update', [OrderController::class, 'updateStatus'])->name('update'); // อัปเดตสถานะ/เลขพัสดุ
+    });
 
-    // การจัดการสินค้า (ครบทุก Function: ดู, เพิ่ม, แก้ไข, ลบ)
-    Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
-    Route::get('/products/create', [AdminProductController::class, 'create'])->name('products.create');
-    Route::post('/products/store', [AdminProductController::class, 'store'])->name('products.store');
-    Route::get('/products/{product}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
-    Route::put('/products/{product}', [AdminProductController::class, 'update'])->name('products.update');
-    Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy');
+    // การจัดการสินค้า
+    Route::resource('products', AdminProductController::class);
 });
 
-// =========================================================
-// ทดสอบระบบ
-// =========================================================
+
+/*
+|--------------------------------------------------------------------------
+| 4. System Test (สำหรับทดสอบ)
+|--------------------------------------------------------------------------
+*/
 Route::get('/test-mail', function () {
-    Mail::raw('Test email from Laravel', function ($message) {
-        $message->to('mackmo.rss@gmail.com')->subject('Test Mail');
+    Mail::raw('Test email from MusicStore', function ($message) {
+        $message->to('your-email@gmail.com')->subject('Test Connection');
     });
-    return "✅ ส่งเมลแล้ว!";
+    return "✅ ระบบส่งอีเมลทำงานปกติ";
 });
