@@ -10,12 +10,14 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-   ->withMiddleware(function (Middleware $middleware) {
-    // เพิ่มการตั้งชื่อเล่น (Alias) ให้ Middleware ของเราตรงนี้
-    $middleware->alias([
-        'admin' => \App\Http\Middleware\AdminMiddleware::class,
-    ]);
-})
+    ->withMiddleware(function (Middleware $middleware) {
+        // เพิ่ม alias สำหรับ middleware
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            // เพิ่มบรรทัดนี้เพื่อใช้งานระบบ Ban
+            'checkBanned' => \App\Http\Middleware\CheckBanned::class, 
+        ]);
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

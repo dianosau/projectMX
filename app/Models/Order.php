@@ -15,7 +15,7 @@ class Order extends Model
         'shipping_status',          // เพิ่ม: สำหรับสถานะโปรเจค (pending, processing, shipping, completed)
         'shipping_address',
         'payment_method',
-        'tracking_number',  // เพิ่ม: สำหรับใส่เลขพัสดุ
+        'tracking_number',
     ];
 
     public function user()
@@ -26,5 +26,10 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+       public function payment()
+    {
+        return $this->hasOne(Payment::class, 'order_id');
     }
 }

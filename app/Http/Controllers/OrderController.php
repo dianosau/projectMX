@@ -25,15 +25,13 @@ class OrderController extends Controller
         return view('orders.index', compact('orders'));
     }
 
-    // ลูกค้ากดยืนยันได้รับสินค้า
     public function complete($id)
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
-        $order->update(['status' => 'completed']);
+        $order->update(['shipping_status' => 'completed']);
 
         return back()->with('success', 'ยืนยันการรับสินค้าเรียบร้อยแล้ว ขอบคุณที่ใช้บริการครับ');
     }
-
 
     /**
      * ==========================================
@@ -44,7 +42,8 @@ class OrderController extends Controller
     // หน้าจัดการคำสั่งซื้อทั้งหมด (Admin Dashboard)
     public function adminIndex()
     {
-        $orders = Order::with(['user', 'orderItems.product'])->latest()->get();
+        $orders = Order::with(['user', 'orderItems.product', 'payment'])->latest()->get();
+
         return view('admin.orders.index', compact('orders'));
     }
 
@@ -53,19 +52,35 @@ class OrderController extends Controller
     {
         $order = Order::findOrFail($id);
 
+        // ตรวจสอบข้อมูล (สถานะต้องตรงกับ 4 ค่าที่เรากำหนด)
         $request->validate([
-            'status' => 'required|in:pending,processing,shipping,completed',
-            'tracking_number' => 'nullable|string|max:50',
+            'shipping_status' => 'required|in:pending,processing,shipping,completed',
+            'tracking_number' => 'nullable|string|max:100',
         ]);
 
-        // อัปเดตข้อมูลลงตาราง orders
+        // อัปเดตข้อมูล
         $order->update([
-            'status' => $request->status,
+            'shipping_status' => $request->shipping_status,
             'tracking_number' => $request->tracking_number,
-            // หากมีการอัปเดตสถานะเป็น completed อาจจะอัปเดต payment_status เป็น paid อัตโนมัติ (ถ้าต้องการ)
-            'payment_status' => ($request->status == 'completed') ? 'paid' : $order->payment_status,
         ]);
 
-        return back()->with('success', "อัปเดตคำสั่งซื้อ #{$order->id} เรียบร้อยแล้ว");
+        return back()->with('success', 'อัปเดตสถานะคำสั่งซื้อ #'.$order->id.' เรียบร้อยแล้ว');
+    }
+
+    public function bulkUpdate(Request $request)
+    {
+        $ordersData = $request->input('orders');
+
+        foreach ($ordersData as $id => $data) {
+            $order = Order::find($id);
+            if ($order) {
+                $order->update([
+                    'tracking_number' => $data['tracking_number'],
+                    'shipping_status' => $data['shipping_status'],
+                ]);
+            }
+        }
+
+        return back()->with('success', 'บันทึกข้อมูลทั้งหมดเรียบร้อยแล้ว');
     }
 }

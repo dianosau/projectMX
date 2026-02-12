@@ -11,11 +11,12 @@ class Payment extends Model
         'method',
         'amount',
         'payment_proof',
-        'status',
     ];
 
     public function order()
     {
         return $this->belongsTo(Order::class);
     }
+
+ 
 }

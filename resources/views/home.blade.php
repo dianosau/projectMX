@@ -22,7 +22,7 @@
                                 เครื่องดนตรีคุณภาพเยี่ยม</h1>
                             <p class="lead mb-4 animate__animated animate__fadeInUp">ร้านเครื่องดนตรีออนไลน์ที่คุณไว้วางใจ
                             </p>
-                            <a href="#"
+                            <a href="{{ route('all.product') }}"
                                 class="btn btn-light btn-lg px-5 py-3 rounded-pill shadow-sm animate__animated animate__fadeInUp animate__delay-1s">
                                 <i class="fas fa-shopping-bag me-2"></i>ช้อปเลย
                             </a>

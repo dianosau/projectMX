@@ -182,9 +182,9 @@
                         </a>
                         <ul class="dropdown-menu">
                             @foreach(App\Models\ProductCategory::all() as $category)
-                            <li><a class="dropdown-item"
-                                    href="{{ route('category.products', $category->id) }}">{{ $category->name }}</a>
-                            </li>
+                                <li><a class="dropdown-item"
+                                        href="{{ route('category.products', $category->id) }}">{{ $category->name }}</a>
+                                </li>
                             @endforeach
                         </ul>
                     </li>
@@ -196,64 +196,77 @@
                 </form>
 
                 <ul class="navbar-nav align-items-center">
+                    {{-- ตะกร้าสินค้า (เห็นทุกคน ทั้ง Admin และ User) --}}
                     <li class="nav-item me-3">
                         <a class="nav-link position-relative p-2" href="{{ route('cart.index') }}">
                             <i class="fas fa-shopping-cart fa-lg"></i>
                             @auth
-                            @php
-                            $totalQuantity = \App\Models\CartItem::where('user_id', Auth::id())->sum('quantity');
-                            @endphp
-                            @if($totalQuantity > 0)
-                            <span
-                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge">
-                                {{ $totalQuantity }}
-                            </span>
-                            @endif
+                                @php
+                                    $totalQuantity = \App\Models\CartItem::where('user_id', Auth::id())->sum('quantity');
+                                @endphp
+                                @if($totalQuantity > 0)
+                                    <span
+                                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge">
+                                        {{ $totalQuantity }}
+                                    </span>
+                                @endif
                             @endauth
                         </a>
                     </li>
 
                     @guest
-                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">เข้าสู่ระบบ</a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-warning text-dark ms-lg-2 px-3 rounded-pill"
-                            href="{{ route('register') }}">สมัครสมาชิก</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">เข้าสู่ระบบ</a></li>
+                        <li class="nav-item"><a class="nav-link btn btn-warning text-dark ms-lg-2 px-3 rounded-pill"
+                                href="{{ route('register') }}">สมัครสมาชิก</a></li>
                     @else
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                            data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i>{{ Auth::user()->name }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
-                            <li>
-                                <h6 class="dropdown-header text-muted">ข้อมูลส่วนตัว</h6>
-                            </li>
-                            <li><a class="dropdown-item" href="{{ route('orders.index') }}"><i class="fas fa-list-alt me-2"></i>ประวัติการสั่งซื้อ</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i>{{ Auth::user()->name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                                <li>
+                                    <h6 class="dropdown-header text-muted">บัญชีของฉัน</h6>
+                                </li>
 
-                            @if(Auth::user()->role === 'admin')
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <h6 class="dropdown-header text-primary">การจัดการระบบ</h6>
-                            </li>
-                            {{-- เหลือเพียง Dashboard เมนูเดียวตามที่ต้องการ --}}
-                            <li>
-                                <a class="dropdown-item fw-bold text-primary" href="{{ route('admin.dashboard') }}">
-                                    <i class="fas fa-chart-line me-2"></i>ไปที่ Admin Dashboard
-                                </a>
-                            </li>
-                            @endif
+                                {{-- ลิงก์ไปยังหน้าจัดการโปรไฟล์และที่อยู่ --}}
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('profile.index') }}">
+                                        <i class="fas fa-user-cog me-2"></i>จัดการบัญชี / ที่อยู่
+                                    </a>
+                                </li>
 
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                    <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('orders.index') }}">
+                                        <i class="fas fa-list-alt me-2"></i>คำสั่งซื้อ
+                                    </a>
+                                </li>
+
+                                @if(Auth::user()->role === 'admin')
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li>
+                                        <h6 class="dropdown-header text-primary">การจัดการระบบ</h6>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item fw-bold text-primary" href="{{ route('admin.dashboard') }}">
+                                            <i class="fas fa-chart-line me-2"></i>ไปที่ Admin Dashboard
+                                        </a>
+                                    </li>
+                                @endif
+
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#"
+                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     @endguest
                 </ul>
             </div>
@@ -263,10 +276,10 @@
     <main class="py-4">
         <div class="container">
             @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm">
-                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm">
+                    <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             @endif
             @yield('content')
         </div>
@@ -309,7 +322,8 @@
     </form>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    @stack('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @stack('script')
 </body>
 
 </html>

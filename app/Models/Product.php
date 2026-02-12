@@ -11,12 +11,9 @@ class Product extends Model
 
    protected $fillable = [
     'name',
-    'color',      // เพิ่ม
-    'color_hex',  // เพิ่ม
     'description',
     'price',
     'stock',
-    'is_active',  // เพิ่ม
     'category_id',
     'image'
 ];

@@ -108,9 +108,10 @@ class CartController extends Controller
                 $order = Order::create([
                     'user_id' => Auth::id(),
                     'total_amount' => $total,
-                    'payment_status' => 'verifying', // เปลี่ยนจาก pending เป็น verifying (รอตรวจสลิป)
                     'shipping_address' => $fullAddress,
                     'payment_method' => 'qr_code',
+                    'shipping_status' => 'pending',
+
                 ]);
 
                 // 2. สร้าง Order
@@ -120,6 +121,7 @@ class CartController extends Controller
                         'product_id' => $item->product_id,
                         'quantity' => $item->quantity,
                         'price' => $item->product->price,
+
                     ]);
 
                     $item->product->decrement('stock', $item->quantity);
@@ -133,8 +135,7 @@ class CartController extends Controller
                         'order_id' => $order->id,
                         'amount' => $total,
                         'method' => 'qr_code',
-                        'status' => 'pending',
-                        'payment_proof' => $path, // เก็บพาธรูปสลิป
+                        'payment_proof' => $path,
                     ]);
                 }
 

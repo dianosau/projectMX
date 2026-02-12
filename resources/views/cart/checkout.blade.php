@@ -167,7 +167,7 @@
         </form>
     </div>
 @endsection
-@push('scripts')
+@push('script')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const slipInput = document.getElementById('slip_input');

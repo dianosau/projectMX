@@ -14,8 +14,9 @@ class ProductCategory extends Model
         'description',
     ];
 
-    public function products()
-    {
-        return $this->hasMany(Product::class);
-    }
+   public function products()
+{
+    // ระบุ 'category_id' หากในฐานข้อมูลใช้ชื่อนี้
+    return $this->hasMany(Product::class, 'category_id'); 
+}
 }
