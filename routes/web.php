@@ -79,24 +79,31 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
+    // หน้า Dashboard
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
 
-    // ส่วนจัดการสินค้า
+    // รายงานยอดขาย (ย้ายมาไว้นี่เพื่อให้ชื่อเป็น admin.reports.sales)
+    Route::get('/reports/sales', [App\Http\Controllers\Admin\ReportController::class, 'salesReport'])->name('reports.sales');
+
+    // ส่วนจัดการสินค้าและหมวดหมู่
     Route::controller(AdminProductController::class)->group(function () {
         Route::get('/products/categories', 'categoryIndex')->name('products.categories');
+        Route::post('/categories', 'categoryStore')->name('categories.store');
         Route::get('/category/{id}/products', 'index')->name('products.index');
         Route::post('/products', 'store')->name('products.store');
         Route::put('/products/{id}', 'update')->name('products.update');
         Route::delete('/products/{id}', 'destroy')->name('products.destroy');
+        Route::put('/categories/{id}', [AdminProductController::class, 'categoryUpdate'])->name('categories.update');
+        Route::delete('/categories/{id}', [AdminProductController::class, 'categoryDestroy'])->name('categories.destroy');
     });
 
-    // ส่วนจัดการคำสั่งซื้อ (เพิ่ม Bulk Update สำหรับปุ่มบันทึกทั้งหมด)
+    // ส่วนจัดการคำสั่งซื้อ
     Route::prefix('orders')->name('orders.')->controller(OrderController::class)->group(function () {
         Route::get('/', 'adminIndex')->name('index');
-        Route::put('/bulk-update', 'bulkUpdate')->name('bulkUpdate'); // ปุ่มบันทึกทั้งหมด
-        Route::put('/{order}/update', 'updateStatus')->name('update'); // บันทึกรายแถว (ถ้ายังมีอยู่)
+        Route::put('/bulk-update', 'bulkUpdate')->name('bulkUpdate');
+        Route::put('/{order}/update', 'updateStatus')->name('update');
     });
 
     // ส่วนจัดการสมาชิก

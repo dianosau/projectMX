@@ -203,11 +203,15 @@
             }
 
             function openEditModal(product) {
-                document.getElementById('modalTitle').innerText = "แก้ไขสินค้า: " + product.name;
-                form.action = `/admin/products/${product.id}`;
-                methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+                const modal = new bootstrap.Modal(document.getElementById('productModal'));
+                const form = document.getElementById('productForm');
 
-                // เติมข้อมูลลงในฟอร์ม
+                // เปลี่ยนหัวข้อและ Action
+                document.getElementById('modalTitle').innerText = 'แก้ไขสินค้า';
+                form.action = `{{ url('admin/products') }}/${product.id}`;
+                document.getElementById('methodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
+
+                // เติมข้อมูลพื้นฐาน
                 document.getElementById('p_name').value = product.name;
                 document.getElementById('p_description').value = product.description || '';
                 document.getElementById('p_price').value = product.price;
@@ -215,25 +219,33 @@
 
                 const currentImg = document.getElementById('currentImage');
                 const container = document.getElementById('currentImageContainer');
+                const urlInput = document.getElementById('p_image_url'); // ช่องกรอก URL
 
                 if (product.image) {
-                    // เช็คว่าเป็น URL หรือไม่
+                    // ตรวจสอบว่าเป็น URL (ขึ้นต้นด้วย http) หรือเป็นไฟล์ในเครื่อง
                     const isUrl = product.image.startsWith('http');
 
                     if (isUrl) {
+                        // กรณีเป็น Link URL
                         currentImg.src = product.image;
+                        urlInput.value = product.image; // <--- ใส่ค่า link ลงในช่อง input
                         document.getElementById('type_url').checked = true;
                         toggleImageInput('url');
-                        document.getElementById('p_image_url').value = product.image;
                     } else {
-                        currentImg.src = `{{ asset('images/products') }}/${product.image}`;
+                        // กรณีเป็นไฟล์อัปโหลด
+                        currentImg.src = `{{ asset('storage') }}/${product.image}`; // แก้จาก images/products เป็น storage ตาม Controller
+                        urlInput.value = ''; // ล้างค่าในช่อง URL
                         document.getElementById('type_file').checked = true;
                         toggleImageInput('file');
                     }
                     container.classList.remove('d-none');
                 } else {
+                    // กรณีไม่มีรูปภาพเลย
                     container.classList.add('d-none');
+                    urlInput.value = '';
+                    document.getElementById('p_image_url').placeholder = 'วาง URL รูปภาพที่นี่ (เช่น https://...)'; // แสดง Hint
                 }
+
                 modal.show();
             }
         </script>
